@@ -1,4 +1,3 @@
-<!-- update -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -270,7 +269,7 @@
         valPrincipal.textContent = formatCurrency(inputPrincipal.value);
         valMonthly.textContent = formatCurrency(inputMonthly.value);
         valRate.textContent = `${parseFloat(inputRate.value).toFixed(1)}%`;
-        valYears.textContent = `${inputYears.value} Year${inputYears.value > 1 ? 's' : ''}`;
+        valYears.textContent = `inputYears.valueYear{inputYears.value > 1 ? 's' : ''}`;
         // Get Financial Calculations
         const results = calculateCompoundInterest();
         // Update Results Text
@@ -293,3 +292,4 @@
 </script>
 </body>
 </html>
+
