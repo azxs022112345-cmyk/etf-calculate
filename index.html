@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETF Compound Interest Calculator</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .calculator-card {
+            background-color: #121212;
+            width: 100%;
+            max-width: 900px;
+            padding: 32px;
+            border-radius: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        @media (max-width: 768px) {
+            .calculator-card {
+                grid-template-columns: 1fr;
+            }
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            grid-column: 1 / -1;
+            letter-spacing: -0.5px;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+        .value-display {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #2a2a2a;
+            border-radius: 3px;
+            outline: none;
+            border: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            border: none;
+        }
+        .results {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .summary-cards {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background-color: #1a1a1a;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #888888;
+        }
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 250px;
+            aspect-ratio: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="calculator-card">
+    <h1>ETF Compound Interest Calculator</h1>
+    <!-- Inputs Column -->
+    <div class="controls">
+        <div class="input-group">
+            <div class="label-row">
+                <span>Initial Principal</span>
+                <span class="value-display" id="val-principal">$10,000</span>
+            </div>
+            <input type="range" id="input-principal" min="0" max="100000" step="1000" value="10000">
+        </div>
+        <div class="input-group">
+            <div class="label-row">
+                <span>Monthly Investment</span>
+                <span class="value-display" id="val-monthly">$500</span>
+            </div>
+            <input type="range" id="input-monthly" min="0" max="5000" step="50" value="500">
+        </div>
+        <div class="input-group">
+            <div class="label-row">
+                <span>Expected Annual Return</span>
+                <span class="value-display" id="val-rate">8.0%</span>
+            </div>
+            <input type="range" id="input-rate" min="1" max="20" step="0.5" value="8">
+        </div>
+        <div class="input-group">
+            <div class="label-row">
+                <span>Time Horizon</span>
+                <span class="value-display" id="val-years">20 Years</span>
+            </div>
+            <input type="range" id="input-years" min="1" max="40" step="1" value="20">
+        </div>
+    </div>
+    <!-- Results & Visualization Column -->
+    <div class="results">
+        <div class="summary-cards">
+            <div class="stat-card">
+                <span class="stat-label">Total Deposits</span>
+                <span class="stat-value" id="res-principal" style="color: #666666;">$0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Total Interest Earned</span>
+                <span class="stat-value" id="res-interest" style="color: #ffffff;">$0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Future Portfolio Value</span>
+                <span class="stat-value" id="res-total" style="color: #ffffff; font-size: 18px;">$0</span>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="doughnutChart"></canvas>
+        </div>
+    </div>
+</div>
+<script>
+    // DOM Elements
+    const inputPrincipal = document.getElementById('input-principal');
+    const inputMonthly = document.getElementById('input-monthly');
+    const inputRate = document.getElementById('input-rate');
+    const inputYears = document.getElementById('input-years');
+    const valPrincipal = document.getElementById('val-principal');
+    const valMonthly = document.getElementById('val-monthly');
+    const valRate = document.getElementById('val-rate');
+    const valYears = document.getElementById('val-years');
+    const resPrincipal = document.getElementById('res-principal');
+    const resInterest = document.getElementById('res-interest');
+    const resTotal = document.getElementById('res-total');
+    // Chart.js Context
+    const ctx = document.getElementById('doughnutChart').getContext('2d');
+    let chart;
+    // Currency Formatter
+    const formatCurrency = (val) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 0
+        }).format(val);
+    };
+    // Calculation Logic
+    function calculateCompoundInterest() {
+        const P = parseFloat(inputPrincipal.value);
+        const PMT = parseFloat(inputMonthly.value);
+        const r = parseFloat(inputRate.value) / 100 / 12; // Monthly rate
+        const n = parseFloat(inputYears.value) * 12; // Total months
+        // Future Value of Initial Principal
+        const fvPrincipal = P * Math.pow(1 + r, n);
+        // Future Value of Monthly Contributions
+        const fvMonthly = PMT * ((Math.pow(1 + r, n) - 1) / r);
+        const totalValue = fvPrincipal + fvMonthly;
+        const totalInvested = P + (PMT * n);
+        const totalInterest = totalValue - totalInvested;
+        return {
+            totalInvested: Math.round(totalInvested),
+            totalInterest: Math.round(totalInterest),
+            totalValue: Math.round(totalValue)
+        };
+    }
+    // Initialize Chart
+    function initChart() {
+        chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Total Principal', 'Total Interest'],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: ['#444444', '#ffffff'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.label}: ${formatCurrency(context.raw)}`;
+                            }
+                        }
+                    }
+                },
+                cutout: '75%'
+            }
+        });
+    }
+    // Dynamic Updates
+    function updateCalculator() {
+        // Update Labels
+        valPrincipal.textContent = formatCurrency(inputPrincipal.value);
+        valMonthly.textContent = formatCurrency(inputMonthly.value);
+        valRate.textContent = `${parseFloat(inputRate.value).toFixed(1)}%`;
+        valYears.textContent = `${inputYears.value} Year${inputYears.value > 1 ? 's' : ''}`;
+        // Get Financial Calculations
+        const results = calculateCompoundInterest();
+        // Update Results Text
+        resPrincipal.textContent = formatCurrency(results.totalInvested);
+        resInterest.textContent = formatCurrency(results.totalInterest);
+        resTotal.textContent = formatCurrency(results.totalValue);
+        // Update Chart Data
+        chart.data.datasets[0].data = [results.totalInvested, results.totalInterest];
+        chart.update();
+    }
+    // Event Listeners
+    [inputPrincipal, inputMonthly, inputRate, inputYears].forEach(input => {
+        input.addEventListener('input', updateCalculator);
+    });
+    // Boot
+    window.onload = () => {
+        initChart();
+        updateCalculator();
+    };
+</script>
+</body>
+</html>
