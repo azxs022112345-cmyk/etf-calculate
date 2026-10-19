@@ -1,295 +1,297 @@
+這份程式碼我已經為你完全重寫，100% 嚴格遵守你提供的規格書細節。
+
+包含暗黑極簡無邊框設計、精確的四個拉桿區間設定、特別放大加粗的最終總資產、即時互動運算，以及使用兩種對比色（深灰與純白）的 Chart.js 圓餅圖，並且全都是繁體中文。
+
+請回到你的 GitHub 專案，點擊 index.html 的鉛筆圖示進入編輯，將裡面的內容全部刪除，然後把下面這個框框裡面的程式碼完整貼上（從 <!DOCTYPE html> 一直到最後的 </html>）：
+
+HTML
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ETF Compound Interest Calculator</title>
-    <!-- Chart.js CDN -->
+    <title>極簡黑客風 ETF 複利計算機</title>
+    <!-- 導入 Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* 暗黑極簡風格 (Dark Mode) */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
         body {
-            background-color: #000000;
-            color: #ffffff;
-            min-height: 100vh;
+            background-color: #121212; /* 純黑色基底 */
+            color: #FFFFFF; /* 高對比純白色 */
             display: flex;
             justify-content: center;
             align-items: center;
+            min-height: 100vh;
             padding: 20px;
         }
-        .calculator-card {
-            background-color: #121212;
+        .container {
             width: 100%;
-            max-width: 900px;
-            padding: 32px;
-            border-radius: 16px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            max-width: 800px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 50px;
         }
-        @media (max-width: 768px) {
-            .calculator-card {
-                grid-template-columns: 1fr;
-            }
+        /* 無邊框設計，極簡區塊排版 */
+        .left-panel, .right-panel {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
         }
         h1 {
+            width: 100%;
             font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 24px;
-            grid-column: 1 / -1;
-            letter-spacing: -0.5px;
+            letter-spacing: 1px;
+            margin-bottom: -10px;
         }
-        .controls {
+        /* 滑動拉桿區塊 */
+        .slider-group {
             display: flex;
             flex-direction: column;
-            gap: 20px;
-        }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            gap: 12px;
         }
         .label-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             font-size: 14px;
-            color: #a0a0a0;
+            color: #CCCCCC;
         }
-        .value-display {
-            font-size: 16px;
-            font-weight: 600;
-            color: #ffffff;
+        .val-display {
+            color: #FFFFFF;
+            font-weight: bold;
         }
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
-            height: 6px;
-            background: #2a2a2a;
-            border-radius: 3px;
+            height: 2px;
+            background: #444444;
             outline: none;
-            border: none;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            background: #ffffff;
+            background: #FFFFFF;
             cursor: pointer;
-            transition: transform 0.1s ease;
+            transition: transform 0.1s;
         }
         input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
+            transform: scale(1.2);
         }
-        input[type="range"]::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #ffffff;
-            cursor: pointer;
-            border: none;
-        }
-        .results {
+        /* 結果展示區 */
+        .result-group {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
+            gap: 8px;
         }
-        .summary-cards {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
+        .result-title {
+            font-size: 14px;
+            color: #AAAAAA;
         }
-        .stat-card {
-            background-color: #1a1a1a;
-            padding: 12px 16px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .result-number {
+            font-size: 20px;
         }
-        .stat-label {
-            font-size: 13px;
-            color: #888888;
-        }
-        .stat-value {
-            font-size: 16px;
-            font-weight: 600;
+        /* 重點聚焦：特別放大並加粗 */
+        .highlight-total {
+            font-size: 42px;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin-top: 5px;
         }
         .chart-container {
             position: relative;
             width: 100%;
             max-width: 250px;
+            margin: 0 auto;
             aspect-ratio: 1;
         }
     </style>
 </head>
 <body>
-<div class="calculator-card">
-    <h1>ETF Compound Interest Calculator</h1>
-    <!-- Inputs Column -->
-    <div class="controls">
-        <div class="input-group">
+
+<div class="container">
+    <h1>ETF 複利計算機</h1>
+    
+    <!-- 左側：互動輸入區 -->
+    <div class="left-panel">
+        <div class="slider-group">
             <div class="label-row">
-                <span>Initial Principal</span>
-                <span class="value-display" id="val-principal">$10,000</span>
+                <span>單筆初始投入本金</span>
+                <span class="val-display" id="val-principal">0 元</span>
             </div>
-            <input type="range" id="input-principal" min="0" max="100000" step="1000" value="10000">
+            <!-- 區間：0 ~ 300 萬 -->
+            <input type="range" id="slider-principal" min="0" max="3000000" step="10000" value="100000">
         </div>
-        <div class="input-group">
+
+        <div class="slider-group">
             <div class="label-row">
-                <span>Monthly Investment</span>
-                <span class="value-display" id="val-monthly">$500</span>
+                <span>每月定期定額金額</span>
+                <span class="val-display" id="val-monthly">0 元</span>
             </div>
-            <input type="range" id="input-monthly" min="0" max="5000" step="50" value="500">
+            <!-- 區間：0 ~ 10 萬 -->
+            <input type="range" id="slider-monthly" min="0" max="100000" step="1000" value="10000">
         </div>
-        <div class="input-group">
+
+        <div class="slider-group">
             <div class="label-row">
-                <span>Expected Annual Return</span>
-                <span class="value-display" id="val-rate">8.0%</span>
+                <span>預期年化報酬率</span>
+                <span class="val-display" id="val-rate">0 %</span>
             </div>
-            <input type="range" id="input-rate" min="1" max="20" step="0.5" value="8">
+            <!-- 區間：1% ~ 20% -->
+            <input type="range" id="slider-rate" min="1" max="20" step="0.1" value="6">
         </div>
-        <div class="input-group">
+
+        <div class="slider-group">
             <div class="label-row">
-                <span>Time Horizon</span>
-                <span class="value-display" id="val-years">20 Years</span>
+                <span>投資年限</span>
+                <span class="val-display" id="val-years">0 年</span>
             </div>
-            <input type="range" id="input-years" min="1" max="40" step="1" value="20">
+            <!-- 區間：1 ~ 50 年 -->
+            <input type="range" id="slider-years" min="1" max="50" step="1" value="10">
         </div>
     </div>
-    <!-- Results & Visualization Column -->
-    <div class="results">
-        <div class="summary-cards">
-            <div class="stat-card">
-                <span class="stat-label">Total Deposits</span>
-                <span class="stat-value" id="res-principal" style="color: #666666;">$0</span>
+
+    <!-- 右側：結果展示與視覺化 -->
+    <div class="right-panel">
+        <div class="result-group">
+            <span class="result-title">預估最終總資產</span>
+            <span class="result-number highlight-total" id="res-total">0 元</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between;">
+            <div class="result-group">
+                <span class="result-title">總投入本金</span>
+                <span class="result-number" id="res-principal">0 元</span>
             </div>
-            <div class="stat-card">
-                <span class="stat-label">Total Interest Earned</span>
-                <span class="stat-value" id="res-interest" style="color: #ffffff;">$0</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Future Portfolio Value</span>
-                <span class="stat-value" id="res-total" style="color: #ffffff; font-size: 18px;">$0</span>
+            <div class="result-group" style="text-align: right;">
+                <span class="result-title">總獲利金額</span>
+                <span class="result-number" id="res-interest">0 元</span>
             </div>
         </div>
+
         <div class="chart-container">
-            <canvas id="doughnutChart"></canvas>
+            <canvas id="myChart"></canvas>
         </div>
     </div>
 </div>
+
+<!-- 技術實作細節：JavaScript 複利運算與圖表邏輯 -->
 <script>
-    // DOM Elements
-    const inputPrincipal = document.getElementById('input-principal');
-    const inputMonthly = document.getElementById('input-monthly');
-    const inputRate = document.getElementById('input-rate');
-    const inputYears = document.getElementById('input-years');
+    const sliderPrincipal = document.getElementById('slider-principal');
+    const sliderMonthly = document.getElementById('slider-monthly');
+    const sliderRate = document.getElementById('slider-rate');
+    const sliderYears = document.getElementById('slider-years');
+
     const valPrincipal = document.getElementById('val-principal');
     const valMonthly = document.getElementById('val-monthly');
     const valRate = document.getElementById('val-rate');
     const valYears = document.getElementById('val-years');
+
+    const resTotal = document.getElementById('res-total');
     const resPrincipal = document.getElementById('res-principal');
     const resInterest = document.getElementById('res-interest');
-    const resTotal = document.getElementById('res-total');
-    // Chart.js Context
-    const ctx = document.getElementById('doughnutChart').getContext('2d');
-    let chart;
-    // Currency Formatter
-    const formatCurrency = (val) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            maximumFractionDigits: 0
-        }).format(val);
+
+    let myChart = null;
+
+    // 格式化金錢顯示
+    const formatCurrency = (num) => {
+        return new Intl.NumberFormat('zh-TW', { 
+            style: 'currency', 
+            currency: 'TWD', 
+            maximumFractionDigits: 0 
+        }).format(num);
     };
-    // Calculation Logic
-    function calculateCompoundInterest() {
-        const P = parseFloat(inputPrincipal.value);
-        const PMT = parseFloat(inputMonthly.value);
-        const r = parseFloat(inputRate.value) / 100 / 12; // Monthly rate
-        const n = parseFloat(inputYears.value) * 12; // Total months
-        // Future Value of Initial Principal
-        const fvPrincipal = P * Math.pow(1 + r, n);
-        // Future Value of Monthly Contributions
-        const fvMonthly = PMT * ((Math.pow(1 + r, n) - 1) / r);
-        const totalValue = fvPrincipal + fvMonthly;
-        const totalInvested = P + (PMT * n);
-        const totalInterest = totalValue - totalInvested;
-        return {
-            totalInvested: Math.round(totalInvested),
-            totalInterest: Math.round(totalInterest),
-            totalValue: Math.round(totalValue)
-        };
+
+    // 核心計算邏輯
+    function calculate() {
+        const P = parseInt(sliderPrincipal.value);
+        const PMT = parseInt(sliderMonthly.value);
+        const r = parseFloat(sliderRate.value) / 100;
+        const t = parseInt(sliderYears.value);
+        const n = 12; // 每月複利一次
+
+        // 更新輸入數值顯示
+        valPrincipal.innerText = formatCurrency(P);
+        valMonthly.innerText = formatCurrency(PMT);
+        valRate.innerText = sliderRate.value + ' %';
+        valYears.innerText = t + ' 年';
+
+        // 運算公式
+        // 1. 單筆投入複利
+        const fvPrincipal = P * Math.pow(1 + r/n, n * t);
+        // 2. 定期定額複利
+        let fvMonthly = 0;
+        if (PMT > 0) {
+            fvMonthly = PMT * ((Math.pow(1 + r/n, n * t) - 1) / (r/n));
+        }
+
+        const totalAssets = fvPrincipal + fvMonthly;
+        const totalPrincipal = P + (PMT * 12 * t);
+        const totalInterest = totalAssets - totalPrincipal;
+
+        // 更新結果顯示
+        resTotal.innerText = formatCurrency(totalAssets);
+        resPrincipal.innerText = formatCurrency(totalPrincipal);
+        resInterest.innerText = formatCurrency(totalInterest);
+
+        // 更新圖表
+        updateChart(totalPrincipal, totalInterest);
     }
-    // Initialize Chart
-    function initChart() {
-        chart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Total Principal', 'Total Interest'],
-                datasets: [{
-                    data: [0, 0],
-                    backgroundColor: ['#444444', '#ffffff'],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return ` ${context.label}: ${formatCurrency(context.raw)}`;
+
+    // 互動式圓餅圖
+    function updateChart(principal, interest) {
+        if (!myChart) {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['總投入本金', '總獲利金額'],
+                    datasets: [{
+                        data: [principal, interest],
+                        // 兩種對比色：低調深灰(本金) 與 高對比白(獲利)
+                        backgroundColor: ['#333333', '#FFFFFF'], 
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // 極簡風格，隱藏圖例
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + formatCurrency(context.raw);
+                                }
                             }
                         }
-                    }
-                },
-                cutout: '75%'
-            }
-        });
+                    },
+                    cutout: '75%'
+                }
+            });
+        } else {
+            myChart.data.datasets[0].data = [principal, interest];
+            myChart.update();
+        }
     }
-    // Dynamic Updates
-    function updateCalculator() {
-        // Update Labels
-        valPrincipal.textContent = formatCurrency(inputPrincipal.value);
-        valMonthly.textContent = formatCurrency(inputMonthly.value);
-        valRate.textContent = `${parseFloat(inputRate.value).toFixed(1)}%`;
-        valYears.textContent = `inputYears.valueYear{inputYears.value > 1 ? 's' : ''}`;
-        // Get Financial Calculations
-        const results = calculateCompoundInterest();
-        // Update Results Text
-        resPrincipal.textContent = formatCurrency(results.totalInvested);
-        resInterest.textContent = formatCurrency(results.totalInterest);
-        resTotal.textContent = formatCurrency(results.totalValue);
-        // Update Chart Data
-        chart.data.datasets[0].data = [results.totalInvested, results.totalInterest];
-        chart.update();
-    }
-    // Event Listeners
-    [inputPrincipal, inputMonthly, inputRate, inputYears].forEach(input => {
-        input.addEventListener('input', updateCalculator);
+
+    // 綁定事件：隨拉動即時更新 (無需點擊按鈕)
+    [sliderPrincipal, sliderMonthly, sliderRate, sliderYears].forEach(slider => {
+        slider.addEventListener('input', calculate);
     });
-    // Boot
-    window.onload = () => {
-        initChart();
-        updateCalculator();
-    };
+
+    // 網頁載入時初始化
+    window.onload = calculate;
 </script>
 </body>
 </html>
-
